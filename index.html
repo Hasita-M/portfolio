@@ -6,6 +6,9 @@
   <title>Hasita Mandaleeka · Portfolio</title>
   <meta name="description" content="Hasita Mandaleeka, Computer Science Student at York University.">
   <meta name="theme-color" content="#070b17">
+  <script>
+    try { if (localStorage.getItem("hm-theme") === "mars") document.documentElement.setAttribute("data-theme", "mars"); } catch (e) {}
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,7 +17,13 @@
 
   <header class="site-header">
     <nav class="nav" aria-label="Main">
-      <a class="nav-brand" href="#home">HM<span class="nav-brand-dot" aria-hidden="true"></span></a>
+      <div class="nav-left">
+        <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Switch to Mars theme" aria-pressed="false">
+          <span class="planet planet-mars" aria-hidden="true"></span>
+          <span class="planet planet-space" aria-hidden="true"></span>
+        </button>
+        <a class="nav-brand" href="#home">HM<span class="nav-brand-dot" aria-hidden="true"></span></a>
+      </div>
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
         <span class="visually-hidden">Menu</span>
         <span class="nav-toggle-bar" aria-hidden="true"></span>

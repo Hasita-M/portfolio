@@ -140,6 +140,32 @@
     }
   }
 
+  /* ---------- Theme toggle: space <-> Mars ---------- */
+
+  var themeToggle = document.getElementById("theme-toggle");
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+
+  function applyTheme(theme) {
+    var mars = theme === "mars";
+    if (mars) document.documentElement.setAttribute("data-theme", "mars");
+    else document.documentElement.removeAttribute("data-theme");
+    themeToggle.setAttribute("aria-pressed", mars ? "true" : "false");
+    themeToggle.setAttribute("aria-label", mars ? "Switch to space theme" : "Switch to Mars theme");
+    if (themeMeta) themeMeta.setAttribute("content", mars ? "#170806" : "#070b17");
+    document.dispatchEvent(new CustomEvent("themechange"));
+  }
+
+  applyTheme(document.documentElement.getAttribute("data-theme") === "mars" ? "mars" : "space");
+
+  themeToggle.addEventListener("click", function () {
+    var next = document.documentElement.getAttribute("data-theme") === "mars" ? "space" : "mars";
+    applyTheme(next);
+    try { window.localStorage.setItem("hm-theme", next); } catch (e) { /* ignore */ }
+    themeToggle.classList.remove("is-switching");
+    void themeToggle.offsetWidth;
+    themeToggle.classList.add("is-switching");
+  });
+
   /* ---------- Star background ---------- */
 
   (function starfield() {
@@ -149,6 +175,12 @@
     var stars = [];
     var w = 0, h = 0, dpr = 1;
     var rafId = null;
+    var tint = "#9be7f4";
+
+    function readTint() {
+      var v = getComputedStyle(document.documentElement).getPropertyValue("--starfield-tint").trim();
+      tint = v || "#9be7f4";
+    }
 
     function build() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -178,7 +210,7 @@
         var s = stars[i];
         var a = reduceMotion ? s.base : s.base + Math.sin(t * s.speed + s.phase) * 0.22;
         ctx.globalAlpha = Math.max(0.05, Math.min(1, a));
-        ctx.fillStyle = s.tint ? "#9be7f4" : "#ffffff";
+        ctx.fillStyle = s.tint ? tint : "#ffffff";
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fill();
@@ -212,6 +244,12 @@
       }
     });
 
+    document.addEventListener("themechange", function () {
+      readTint();
+      if (reduceMotion) draw(0);
+    });
+
+    readTint();
     build();
     start();
   })();

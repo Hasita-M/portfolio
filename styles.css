@@ -6,15 +6,23 @@
 :root {
   --bg: #070b17;
   --bg-deep: #04060e;
-  --surface: rgba(13, 21, 40, 0.72);
+  --bg-hi: #0f1a36;
+  --bg-rgb: 7, 11, 23;
+  --surface-rgb: 13, 21, 40;
+  --accent-rgb: 79, 209, 232;
+  --glow-rgb: 170, 220, 255;
+  --nebula-rgb: 120, 90, 200;
+  --starfield-tint: #9be7f4;
+  --surface: rgba(var(--surface-rgb),  0.72);
   --surface-solid: #0d1528;
-  --border: rgba(79, 209, 232, 0.16);
-  --border-strong: rgba(79, 209, 232, 0.42);
+  --theme-speed: 0.6s;
+  --border: rgba(var(--accent-rgb),  0.16);
+  --border-strong: rgba(var(--accent-rgb),  0.42);
   --text: #e6edf7;
   --muted: #93a1b8;
   --accent: #4fd1e8;
-  --accent-soft: rgba(79, 209, 232, 0.12);
-  --accent-glow: rgba(79, 209, 232, 0.45);
+  --accent-soft: rgba(var(--accent-rgb),  0.12);
+  --accent-glow: rgba(var(--accent-rgb),  0.45);
   --danger: #ff8a8a;
   --star: #ffd76a;
 
@@ -26,6 +34,33 @@
   --gutter: 16px;
   --max: 1040px;
   --header-h: 64px;
+}
+
+/* ---------- Mars theme ---------- */
+
+:root[data-theme="mars"] {
+  --bg: #170806;
+  --bg-deep: #0b0403;
+  --bg-hi: #3d140a;
+  --bg-rgb: 23, 8, 6;
+  --surface-rgb: 44, 19, 13;
+  --surface: rgba(44, 19, 13, 0.72);
+  --surface-solid: #2c130d;
+  --accent: #ff7a45;
+  --accent-rgb: 255, 122, 69;
+  --text: #f7e9e1;
+  --muted: #c9a797;
+  --glow-rgb: 255, 184, 140;
+  --nebula-rgb: 196, 72, 32;
+  --starfield-tint: #ffb38a;
+}
+
+body,
+.site-header,
+.panel,
+.status-row,
+.chips li {
+  transition: background-color var(--theme-speed), border-color var(--theme-speed), color var(--theme-speed);
 }
 
 *,
@@ -41,7 +76,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 70% -10%, #0f1a36 0%, var(--bg) 45%, var(--bg-deep) 100%) fixed;
+  background: radial-gradient(ellipse at 70% -10%, var(--bg-hi) 0%, var(--bg) 45%, var(--bg-deep) 100%) fixed;
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
@@ -105,7 +140,7 @@ button { font: inherit; color: inherit; }
   inset: 0 0 auto 0;
   z-index: 50;
   height: var(--header-h);
-  background: rgba(7, 11, 23, 0.72);
+  background: rgba(var(--bg-rgb),  0.72);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
@@ -136,6 +171,84 @@ button { font: inherit; color: inherit; }
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.nav-left { display: flex; align-items: center; gap: 10px; }
+
+/* ---------- Theme toggle: shiny Mars / cool dark planet ---------- */
+
+.theme-toggle {
+  position: relative;
+  width: 44px; height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.planet {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  transition: opacity 0.5s, transform 0.6s cubic-bezier(.5, 1.6, .5, 1);
+}
+.planet::after {
+  /* moving shine */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.55) 45%, transparent 60%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  animation: planet-shine 4.5s ease-in-out infinite;
+}
+@keyframes planet-shine {
+  0%, 60% { background-position: 120% 0; }
+  100% { background-position: -60% 0; }
+}
+
+/* Bright, shiny Mars (shown in the space theme) */
+.planet-mars {
+  background:
+    radial-gradient(circle at 64% 62%, rgba(90, 20, 8, 0.55) 0 9%, transparent 11%),
+    radial-gradient(circle at 38% 70%, rgba(90, 20, 8, 0.45) 0 6%, transparent 8%),
+    radial-gradient(circle at 70% 34%, rgba(90, 20, 8, 0.4) 0 5%, transparent 7%),
+    radial-gradient(ellipse 60% 18% at 50% 48%, rgba(120, 30, 10, 0.35), transparent 70%),
+    radial-gradient(circle at 32% 28%, #ffe0c4 0 7%, #ff9a5c 20%, #e0532c 48%, #8e2612 82%, #4a1208 100%);
+  box-shadow: 0 0 10px rgba(255, 110, 60, 0.75), 0 0 22px rgba(255, 90, 40, 0.35);
+}
+/* Cool dark planet with a ring (shown in the Mars theme) */
+.planet-space {
+  opacity: 0;
+  transform: scale(0.4) rotate(-90deg);
+  background:
+    radial-gradient(circle at 60% 66%, rgba(0, 0, 0, 0.35) 0 8%, transparent 10%),
+    radial-gradient(circle at 32% 28%, #b8f3ff 0 6%, #4a86d8 22%, #1d2f7a 52%, #0a0f2e 85%, #04060e 100%);
+  box-shadow: 0 0 10px rgba(79, 209, 232, 0.6), 0 0 22px rgba(79, 140, 232, 0.3);
+}
+.planet-space::before {
+  content: "";
+  position: absolute;
+  left: -30%; right: -30%;
+  top: 40%; height: 20%;
+  border: 1.5px solid rgba(160, 230, 255, 0.85);
+  border-radius: 50%;
+  transform: rotate(-22deg);
+  box-shadow: 0 0 6px rgba(79, 209, 232, 0.6);
+}
+
+:root[data-theme="mars"] .planet-mars { opacity: 0; transform: scale(0.4) rotate(90deg); }
+:root[data-theme="mars"] .planet-space { opacity: 1; transform: none; }
+
+.theme-toggle:hover .planet { filter: brightness(1.15) saturate(1.1); }
+.theme-toggle:active .planet { transform: scale(0.9); }
+:root[data-theme="mars"] .theme-toggle:active .planet-space { transform: scale(0.9); }
+.theme-toggle.is-switching { animation: planet-pop 0.6s ease-out; }
+@keyframes planet-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25) rotate(20deg); }
+  100% { transform: scale(1) rotate(0); }
 }
 
 .nav-links {
@@ -195,7 +308,7 @@ button { font: inherit; color: inherit; }
     flex-direction: column;
     gap: 0;
     padding: 8px var(--gutter) 16px;
-    background: rgba(7, 11, 23, 0.97);
+    background: rgba(var(--bg-rgb),  0.97);
     border-bottom: 1px solid var(--border);
     display: none;
   }
@@ -522,8 +635,8 @@ button { font: inherit; color: inherit; }
   color: #f3f0ff;
   text-shadow:
     0 0 6px rgba(255, 255, 255, 0.55),
-    0 0 18px rgba(170, 220, 255, 0.45),
-    0 0 42px rgba(79, 209, 232, 0.35);
+    0 0 18px rgba(var(--glow-rgb),  0.45),
+    0 0 42px rgba(var(--accent-rgb),  0.35);
   opacity: 0.92;
 }
 /* Written on, left to right, when the section scrolls into view */
@@ -533,8 +646,8 @@ button { font: inherit; color: inherit; }
   to { clip-path: inset(-40px -60px -40px -40px); opacity: 0.92; }
 }
 @keyframes drift {
-  0%, 100% { opacity: 0.92; text-shadow: 0 0 6px rgba(255,255,255,0.55), 0 0 18px rgba(170,220,255,0.45), 0 0 42px rgba(79,209,232,0.35); }
-  50% { opacity: 0.7; text-shadow: 0 0 4px rgba(255,255,255,0.35), 0 0 12px rgba(170,220,255,0.3), 0 0 30px rgba(79,209,232,0.2); }
+  0%, 100% { opacity: 0.92; text-shadow: 0 0 6px rgba(255,255,255,0.55), 0 0 18px rgba(var(--glow-rgb), 0.45), 0 0 42px rgba(var(--accent-rgb), 0.35); }
+  50% { opacity: 0.7; text-shadow: 0 0 4px rgba(255,255,255,0.35), 0 0 12px rgba(var(--glow-rgb), 0.3), 0 0 30px rgba(var(--accent-rgb), 0.2); }
 }
 
 .sky {
@@ -543,8 +656,8 @@ button { font: inherit; color: inherit; }
   margin: 8px 0 24px;
   border-radius: var(--radius);
   background:
-    radial-gradient(ellipse closest-side at 30% 40%, rgba(120, 90, 200, 0.10), transparent),
-    radial-gradient(ellipse closest-side at 75% 65%, rgba(79, 209, 232, 0.08), transparent);
+    radial-gradient(ellipse closest-side at 30% 40%, rgba(var(--nebula-rgb),  0.10), transparent),
+    radial-gradient(ellipse closest-side at 75% 65%, rgba(var(--accent-rgb),  0.08), transparent);
 }
 
 .star {
@@ -584,17 +697,17 @@ button { font: inherit; color: inherit; }
   animation: star-core 2.6s ease-in-out var(--d, 0s) infinite;
 }
 .star:not(.stone):not(.is-found):hover::before,
-.star:not(.stone):not(.is-found):focus-visible::before { animation: none; opacity: 1; transform: scale(1.4); filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgba(170, 220, 255, 0.95)); }
+.star:not(.stone):not(.is-found):focus-visible::before { animation: none; opacity: 1; transform: scale(1.4); filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgba(var(--glow-rgb),  0.95)); }
 
 @keyframes star-twinkle {
   0%, 100% { opacity: 0.6; transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7)); }
   35% { opacity: 0.3; transform: scale(0.75) rotate(-6deg); filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.4)); }
-  55% { opacity: 1; transform: scale(1.5) rotate(10deg); filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgba(170, 220, 255, 0.95)) drop-shadow(0 0 28px rgba(79, 209, 232, 0.6)); }
-  72% { opacity: 0.9; transform: scale(1.1) rotate(0deg); filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px rgba(170, 220, 255, 0.7)); }
+  55% { opacity: 1; transform: scale(1.5) rotate(10deg); filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px rgba(var(--glow-rgb),  0.95)) drop-shadow(0 0 28px rgba(var(--accent-rgb),  0.6)); }
+  72% { opacity: 0.9; transform: scale(1.1) rotate(0deg); filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 12px rgba(var(--glow-rgb),  0.7)); }
 }
 @keyframes star-core {
   0%, 100% { opacity: 0.7; box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.5); }
-  55% { opacity: 1; box-shadow: 0 0 12px 5px rgba(255, 255, 255, 0.75), 0 0 26px 10px rgba(170, 220, 255, 0.35); }
+  55% { opacity: 1; box-shadow: 0 0 12px 5px rgba(255, 255, 255, 0.75), 0 0 26px 10px rgba(var(--glow-rgb),  0.35); }
 }
 
 /* Discovered: glows star-yellow */
@@ -647,7 +760,7 @@ button { font: inherit; color: inherit; }
   padding: 8px 12px;
   transform: translate(-50%, 22px);
   border-radius: var(--radius-sm);
-  background: rgba(13, 21, 40, 0.92);
+  background: rgba(var(--surface-rgb),  0.92);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--muted);
   font-size: 0.875rem;
@@ -756,7 +869,7 @@ button { font: inherit; color: inherit; }
 .contact-gallery .contact-card:focus-within {
   border-color: var(--border-strong);
   transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(79, 209, 232, 0.1);
+  box-shadow: 0 8px 30px rgba(var(--accent-rgb),  0.1);
 }
 .contact-icon {
   display: inline-flex;
