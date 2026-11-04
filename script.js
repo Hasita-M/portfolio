@@ -274,6 +274,53 @@
   var factTitle = document.getElementById("fact-title");
   var factBody = document.getElementById("fact-body");
 
+  /* Gold lines tracing the H, drawn once all 7 stars are found */
+  var skyLines = document.getElementById("sky-lines");
+  var H_EDGES = [[0, 1], [1, 2], [4, 5], [5, 6], [1, 3], [3, 5]];
+  var linesDrawn = false;
+  var drawAfterClose = false;
+
+  function starPos(idx) {
+    var btn = stars.filter(function (b) { return Number(b.getAttribute("data-star")) === idx; })[0];
+    return {
+      x: parseFloat(btn.style.getPropertyValue("--x")),
+      y: parseFloat(btn.style.getPropertyValue("--y"))
+    };
+  }
+
+  function drawLines(animate) {
+    var w = skyLines.clientWidth || 1;
+    var h = skyLines.clientHeight || 1;
+    skyLines.setAttribute("viewBox", "0 0 " + w + " " + h);
+    skyLines.textContent = "";
+    H_EDGES.forEach(function (e, i) {
+      var a = starPos(e[0]);
+      var b = starPos(e[1]);
+      var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("class", "sky-line");
+      line.setAttribute("x1", a.x / 100 * w); line.setAttribute("y1", a.y / 100 * h);
+      line.setAttribute("x2", b.x / 100 * w); line.setAttribute("y2", b.y / 100 * h);
+      line.setAttribute("pathLength", "1");
+      line.style.setProperty("--delay", (i * 0.25) + "s");
+      skyLines.appendChild(line);
+    });
+    skyLines.classList.toggle("is-drawing", !!animate && !reduceMotion);
+    linesDrawn = true;
+  }
+
+  var linesResizeTimer;
+  window.addEventListener("resize", function () {
+    if (!linesDrawn) return;
+    window.clearTimeout(linesResizeTimer);
+    linesResizeTimer = window.setTimeout(function () { drawLines(false); }, 120);
+  });
+
+  function clearLines() {
+    skyLines.textContent = "";
+    skyLines.classList.remove("is-drawing");
+    linesDrawn = false;
+  }
+
   function render() {
     var n = found.length;
     stars.forEach(function (btn) {
@@ -289,6 +336,8 @@
     progress.setAttribute("aria-valuenow", String(n));
     progressFill.style.width = (n / 7 * 100) + "%";
     motto.hidden = n < 7;
+    if (n < 7) { clearLines(); drawAfterClose = false; }
+    else if (!linesDrawn && !drawAfterClose) drawLines(false);
   }
 
   function openFact(idx, isNew) {
@@ -302,11 +351,17 @@
 
   function closeFact() {
     if (typeof dialog.close === "function") dialog.close();
-    else dialog.removeAttribute("open");
+    else { dialog.removeAttribute("open"); dialog.dispatchEvent(new Event("close")); }
   }
 
   /* Click anywhere (inside the message or on the backdrop) to exit. Esc also works. */
   dialog.addEventListener("click", closeFact);
+  dialog.addEventListener("close", function () {
+    if (drawAfterClose) {
+      drawAfterClose = false;
+      drawLines(true);
+    }
+  });
 
   stars.forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -315,6 +370,7 @@
       if (isNew) {
         found.push(idx);
         saveState();
+        if (found.length === 7) drawAfterClose = true;
         render();
         btn.classList.remove("is-flash");
         void btn.offsetWidth; // restart animation
@@ -377,6 +433,87 @@
   }
 
   render();
+
+  /* ==========================================================
+     Skills: pop-up box with where each skill comes from
+     ========================================================== */
+
+  var skillTip = document.getElementById("skill-tip");
+  var activeChip = null;
+  var GAP = 12;
+
+  function placeTip(chip) {
+    var r = chip.getBoundingClientRect();
+    var vw = document.documentElement.clientWidth;
+    var vh = window.innerHeight;
+    skillTip.style.left = "0px";
+    skillTip.style.top = "0px";
+    var tw = skillTip.offsetWidth;
+    var th = skillTip.offsetHeight;
+    var side, left, top;
+
+    if (r.right + GAP + tw <= vw - 8) {
+      side = "right"; left = r.right + GAP; top = r.top + r.height / 2 - th / 2;
+    } else if (r.left - GAP - tw >= 8) {
+      side = "left"; left = r.left - GAP - tw; top = r.top + r.height / 2 - th / 2;
+    } else {
+      side = r.top > th + GAP + 70 ? "above" : "below";
+      left = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), vw - tw - 8);
+      top = side === "above" ? r.top - GAP - th : r.bottom + GAP;
+    }
+    var clampedTop = Math.min(Math.max(72, top), vh - th - 8);
+    skillTip.style.left = Math.round(left) + "px";
+    skillTip.style.top = Math.round(clampedTop) + "px";
+    skillTip.style.setProperty("--arrow-y", Math.round(r.top + r.height / 2 - clampedTop) + "px");
+    skillTip.style.setProperty("--tip-shift", side === "left" ? "6px" : "-6px");
+    skillTip.setAttribute("data-side", side);
+  }
+
+  function showTip(chip) {
+    if (activeChip && activeChip !== chip) hideTip();
+    activeChip = chip;
+    skillTip.textContent = chip.getAttribute("data-tip");
+    skillTip.hidden = false;
+    placeTip(chip);
+    chip.classList.add("is-active");
+    chip.setAttribute("aria-describedby", "skill-tip");
+    skillTip.classList.add("is-shown");
+  }
+
+  function hideTip() {
+    if (!activeChip) return;
+    activeChip.classList.remove("is-active");
+    activeChip.removeAttribute("aria-describedby");
+    activeChip = null;
+    skillTip.classList.remove("is-shown");
+    skillTip.hidden = true;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("button.chip[data-tip]"), function (chip) {
+    chip.addEventListener("pointerenter", function (e) { if (e.pointerType === "mouse") showTip(chip); });
+    chip.addEventListener("pointerleave", function (e) { if (e.pointerType === "mouse") hideTip(); });
+    chip.addEventListener("focus", function () { showTip(chip); });
+    chip.addEventListener("blur", function () { if (activeChip === chip) hideTip(); });
+    /* Touch: tap to open, tap again (or anywhere else) to close */
+    var wasOpen = false;
+    chip.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse") wasOpen = activeChip === chip;
+    });
+    chip.addEventListener("pointerup", function (e) {
+      if (e.pointerType === "mouse") return;
+      if (wasOpen) hideTip();
+      else showTip(chip);
+    });
+  });
+
+  document.addEventListener("pointerdown", function (e) {
+    if (activeChip && !e.target.closest("button.chip")) hideTip();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") hideTip();
+  });
+  window.addEventListener("scroll", function () { if (activeChip) placeTip(activeChip); }, { passive: true });
+  window.addEventListener("resize", function () { if (activeChip) placeTip(activeChip); });
 
   /* ==========================================================
      Contact: copy email address

@@ -59,7 +59,7 @@ body,
 .site-header,
 .panel,
 .status-row,
-.chips li {
+.chip {
   transition: background-color var(--theme-speed), border-color var(--theme-speed), color var(--theme-speed);
 }
 
@@ -563,7 +563,7 @@ button { font: inherit; color: inherit; }
 
 .systems-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
   gap: 16px;
 }
 .system { position: relative; padding-top: 28px; }
@@ -586,13 +586,71 @@ button { font: inherit; color: inherit; }
   color: var(--muted);
 }
 .chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; }
-.chips li {
+.chip {
+  display: inline-block;
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--border-strong);
   background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
   font-size: 0.9375rem;
+  line-height: 1.4;
 }
+button.chip { cursor: help; }
+button.chip:hover,
+button.chip:focus-visible,
+button.chip.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 16px var(--accent-glow);
+  transform: translateY(-1px);
+}
+.chip { transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s; }
+
+.skills-hint {
+  margin: 16px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+/* Pop-up box beside a skill */
+.skill-tip {
+  position: fixed;
+  z-index: 60;
+  max-width: 260px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-solid);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 18px rgba(var(--accent-rgb), 0.18);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(var(--tip-shift, -6px)) scale(0.97);
+  transition: opacity 0.18s, transform 0.18s;
+}
+.skill-tip[hidden] { display: block; visibility: hidden; }
+.skill-tip.is-shown { opacity: 1; transform: none; }
+.skill-tip::before {
+  /* little pointer toward the skill */
+  content: "";
+  position: absolute;
+  top: var(--arrow-y, 50%);
+  width: 10px; height: 10px;
+  margin-top: -5px;
+  background: inherit;
+  border: inherit;
+  transform: rotate(45deg);
+}
+.skill-tip[data-side="right"]::before { left: -6px; border-top-color: transparent; border-right-color: transparent; }
+.skill-tip[data-side="left"]::before { right: -6px; border-bottom-color: transparent; border-left-color: transparent; }
+.skill-tip[data-side="above"]::before,
+.skill-tip[data-side="below"]::before { display: none; }
 
 /* ---------- Projects ---------- */
 
@@ -622,6 +680,55 @@ button { font: inherit; color: inherit; }
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 .mission-note strong { color: var(--text); }
+
+/* Built-with ticker: tech names glide right to left in a loop */
+.ticker {
+  align-self: stretch;
+  margin: 20px -24px -24px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker var(--ticker-speed, 20s) linear infinite;
+}
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker-group {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 0 10px 0 0;
+  list-style: none;
+}
+.ticker-group li {
+  flex: none;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.ticker-group li::before { content: "✦ "; opacity: 0.6; }
+@keyframes ticker { to { transform: translateX(-25%); } }
+
+@media (max-width: 560px) {
+  .ticker { margin: 18px -20px -20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker { -webkit-mask-image: none; mask-image: none; padding: 12px 24px; }
+  .ticker-track { animation: none; width: auto; }
+  .ticker-group { flex-wrap: wrap; padding: 0; }
+  .ticker-group[aria-hidden="true"] { display: none; }
+}
 
 /* ---------- Beyond the Code ---------- */
 
@@ -658,6 +765,35 @@ button { font: inherit; color: inherit; }
   background:
     radial-gradient(ellipse closest-side at 30% 40%, rgba(var(--nebula-rgb),  0.10), transparent),
     radial-gradient(ellipse closest-side at 75% 65%, rgba(var(--accent-rgb),  0.08), transparent);
+}
+
+/* Faint gold lines that reveal the H once every star is found */
+.sky-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 106, 0.7)) drop-shadow(0 0 12px rgba(255, 200, 90, 0.35));
+}
+.sky-line {
+  stroke: rgba(255, 215, 106, 0.55);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.sky-lines.is-drawing .sky-line {
+  stroke-dashoffset: 1;
+  animation: sky-line-draw 0.9s ease-out forwards, sky-line-breathe 4s ease-in-out 1.6s infinite;
+  animation-delay: var(--delay, 0s), calc(var(--delay, 0s) + 0.9s);
+}
+.sky-lines:not(.is-drawing) .sky-line { animation: sky-line-breathe 4s ease-in-out infinite; }
+@keyframes sky-line-draw { to { stroke-dashoffset: 0; } }
+@keyframes sky-line-breathe {
+  0%, 100% { stroke: rgba(255, 215, 106, 0.55); }
+  50% { stroke: rgba(255, 225, 140, 0.8); }
 }
 
 .star {
